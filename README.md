@@ -102,9 +102,9 @@ Download files from remote.
 ```yaml
 compress: Whether to compress before downloading
 files: a map of [remote file or directory - a local file or directory]. For example
-  '/var/log/syslog': /Users/mike/temp Download a directory to a directory
-  '/var/log/user.log': '/Users/mike/temp' Download a file to a directory
-  '/var/log/user.log': '/Users/mike/temp/user_##%Y%m%d%H%M%S##.log' Download a file to a file
+  '/var/log/syslog': /Users/mike/temp # Download a directory to a directory
+  '/var/log/user.log': '/Users/mike/temp' # Download a file to a directory
+  '/var/log/user.log': '/Users/mike/temp/user_##%Y%m%d%H%M%S##.log' # Download a file to a file
 ```
 
 #### Variables in the configuration file
