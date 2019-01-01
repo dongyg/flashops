@@ -60,16 +60,16 @@ FlashOps uses the yaml format file as a configuration file, and everything is wr
 #### Parameters of operation
 
 ```yaml
-- title, the title of the operation
-- type, see [Built-in Operation Type], if not given, [commands] give the command to be executed
-- commands, one or more shell commands or scripts that can be executed under the shell
-- issudo, indicates whether to execute the command using sudo mode for server
-- yesorno, whether to ask to continue before execution
-- target, in [tasks] section, when you define a operation directly instead of [includes], indicates the target (server/project) by [servers.|projects.]title
-- visible, if the main purpose of an operation is to be used in [includes], you can set visible to Flase. However, it still occupies the serial number
-- shortcut, shortcut key, if it conflicts with other operation sequence numbers, it will be invalid
-- includes, to include other operations instead of [commands] by `[servers|projects.][server title|project title.]operation title`
-- executor, a python script source file as the executor of the current operation, see [Custom Executor]
+title: the title of the operation
+type: see [Built-in Operation Type], if not given, [commands] give the command to be executed
+commands: one or more shell commands or scripts that can be executed under the shell
+issudo: indicates whether to execute the command using sudo mode for server
+yesorno: whether to ask to continue before execution
+target: in [tasks] section, when you define a operation directly instead of [includes], indicates the target (server/project) by [servers.|projects.]title
+visible: if the main purpose of an operation is to be used in [includes], you can set visible to Flase. However, it still occupies the serial number
+shortcut: shortcut key, if it conflicts with other operation sequence numbers, it will be invalid
+includes: to include other operations instead of [commands] by `[servers|projects.][server title|project title.]operation title`
+executor: a python script source file as the executor of the current operation, see [Custom Executor]
 ```
 
 #### Built-in Operation Type
@@ -78,17 +78,17 @@ FlashOps uses the yaml format file as a configuration file, and everything is wr
 
 Add, commit, push operations for local git repository.
 
-```
+```yaml
 type: gitpush
-folder, a folder of local git repository. FlashOps lists the files through [git status] command, you can choose files and add, commit, push
+folder: a folder of local git repository. FlashOps lists the files through [git status] command, you can choose files and add, commit, push
 ```
 
 ##### `uploadfiles`
 
 Synchronize local files to the remote.
 
-```
-sources, one or more files or directories you want to synchronize
+```yaml
+sources: one or more files or directories you want to synchronize
     [source]: a file or a directory in local machine
         [target server]: [target folder]
 fullordiff: full|diff. Indicates full copy or diff copy when the [source] is a directory.
@@ -99,9 +99,9 @@ excludes: Excludes some files when  the [source] is a directory.
 
 Download files from remote.
 
-```
-compress, Whether to compress before downloading
-files, a map of [remote file or directory : a local file or directory]. For example:
+```yaml
+compress: Whether to compress before downloading
+files: a map of [remote file or directory - a local file or directory]. For example
   '/var/log/syslog': /Users/mike/temp Download a directory to a directory
   '/var/log/user.log': '/Users/mike/temp' Download a file to a directory
   '/var/log/user.log': '/Users/mike/temp/user_##%Y%m%d%H%M%S##.log' Download a file to a file
