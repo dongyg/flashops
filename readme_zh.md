@@ -61,16 +61,16 @@ FlashOps 使用 yaml 格式文件作为配置文件，所有的东西都写在�
 #### 操作配置项
 
 ```yaml
-- title, 操作全称，可以被 includes 指令引用，可以有空格，不要重名，重名的 title 不光在引用时，在使用时也无法分辨它们
-- type, 操作类型，详见【预置操作类型】。未设置表示普通操作，由 commands 给出要执行的命令
-- commands, 对普通操作，可设置多条 shell 命令或可在 shell 下执行的文件
-- issudo, 针对 server 有效，指示是否使用 sudo 方式执行命令
-- yesorno, 执行前是否询问继续，默认为False
-- target, 针对 task 有效，当 operations 中定义具体的操作时，而不是 includes servers 或 projects 中的操作时，需要给出操作在哪里执行，哪个 project 或 server。使用 [servers.|projects.]title 形式给出
-- visible, 定义操作是否可见，默认为可见。注意即使操作不可见，其序号位还是占用的，可见的操作序号会不连续。输入此不可见操作的序号仍然可以执行它。不可见的意义在于它几乎是不会直接执行的，主要是用于被其它操作引用
-- shortcut, 定义命令快捷键，序号优先于快捷键，所以定义快捷键不要与序号冲突，否则快捷键无效。可以使用两个大写字母（序号只会是小写字母），即不会冲突，也容易记忆和输入
-- includes, 包含多个其它操作，使用 `[servers.][server title.]operation title` 的形式代表某个操作，例如 [servers.vs28.restartwww1, servers.vs28.restartwww2] 表示包含 vs28 服务器的两个 restartwww 操作。在 Server 内的 includes 定义，可以省略写 `servers` 和 `server title`
-- executor, 可以提供一个 python 脚本源文件作为当前操作的执行器，FlashOps 针对这个操作将不执行任何工作，仅调用执行器，详见【自定义执行器】
+title: 操作全称，可以被 includes 指令引用，可以有空格，不要重名，重名的 title 不光在引用时，在使用时也无法分辨它们
+type: 操作类型，详见【预置操作类型】。未设置表示普通操作，由 commands 给出要执行的命令
+commands: 对普通操作，可设置多条 shell 命令或可在 shell 下执行的文件
+issudo: 针对 server 有效，指示是否使用 sudo 方式执行命令
+yesorno: 执行前是否询问继续，默认为False
+target: 针对 task 有效，当 operations 中定义具体的操作时，而不是 includes servers 或 projects 中的操作时，需要给出操作在哪里执行，哪个 project 或 server。使用 [servers.|projects.]title 形式给出
+visible: 定义操作是否可见，默认为可见。注意即使操作不可见，其序号位还是占用的，可见的操作序号会不连续。输入此不可见操作的序号仍然可以执行它。不可见的意义在于它几乎是不会直接执行的，主要是用于被其它操作引用
+shortcut: 定义命令快捷键，序号优先于快捷键，所以定义快捷键不要与序号冲突，否则快捷键无效。可以使用两个大写字母（序号只会是小写字母），即不会冲突，也容易记忆和输入
+includes: 包含多个其它操作，使用 `[servers.][server title.]operation title` 的形式代表某个操作，例如 [servers.vs28.restartwww1, servers.vs28.restartwww2] 表示包含 vs28 服务器的两个 restartwww 操作。在 Server 内的 includes 定义，可以省略写 `servers` 和 `server title`
+executor: 可以提供一个 python 脚本源文件作为当前操作的执行器，FlashOps 针对这个操作将不执行任何工作，仅调用执行器，详见【自定义执行器】
 ```
 
 #### 预置操作类型
@@ -88,8 +88,8 @@ folder, 设置一个在 git 管理下的目录，FlashOps 通过 git status 命�
 
 同步项目文件到远端指定目录，需要配置参数如下
 
-```
-sources, 可设置多个源目录或文件，将目录或文件同步到目标服务器的指定目录
+```yaml
+sources: 可设置多个源目录或文件，将目录或文件同步到目标服务器的指定目录
     [source folder]: 本机源文件或目录
         [target server]: [target folder] 服务器：目录。注意，无论源是文件还是目录，目标都需要给出一个目录名，而非文件名，若目录不存在会尝试创建。也就是说在同步文件时，目的文件名是与源文件名相同的
 fullordiff: full|diff。如果源是目录，可以设置同步目录全部文件，还是仅同步本地更新的文件，默认为 diff。当源是目录时，目录名以斜杠结尾表示同步目录里面的内容，不包含目录本身，当目录名不以斜杠结尾时表示同步目录本身。源目录中文件是否更新的判断依据是文件的修改时间要晚于远端此文件的修改时间，或文件大小不同。
@@ -100,20 +100,20 @@ excludes: 排除文件或目录。如果源是目录时，可以排除一些指�
 
 从服务器下载文件，只能作为`server`的操作。也可定义在`task`中但必须指定`target`为某个`server`。
 
-```
-compress, 下载前是否压缩，针对本下载操作的所有文件有效。如果压缩，在服务器先利用 tar 压缩到 /flashops/tmp 目录中再下载。源是目录时一定会先压缩再下载。
-files, 可设置多个，服务器端目录或文件:复制到本地的目标目录或文件键值对。目标是目录时，文件名与原文件相同，目标是文件时，若文件已存在会覆盖。源是目录时，目标必须是目录。源是文件时，目标可以不是文件而是目录。所以，若不改变文件名，目标总是可以写目录名。
+```yaml
+compress: 下载前是否压缩，针对本下载操作的所有文件有效。如果压缩，在服务器先利用 tar 压缩到 /flashops/tmp 目录中再下载。源是目录时一定会先压缩再下载。
+files: 可设置多个，服务器端目录或文件:复制到本地的目标目录或文件键值对。目标是目录时，文件名与原文件相同，目标是文件时，若文件已存在会覆盖。源是目录时，目标必须是目录。源是文件时，目标可以不是文件而是目录。所以，若不改变文件名，目标总是可以写目录名。
 举例如下：
-  '/var/log/syslog': /Users/vs/temp 目录下载到目录，默认压缩
-  '/var/log/user.log': '/Users/vs/temp' 文件下载到目录，将保持原文件名，可指定是否压缩
-  '/var/log/user.log': '/Users/vs/temp/user_##%Y%m%d%H%M%S##.log' 文件下载到文件，可指定是否压缩，文件名中可使用变量
+  '/var/log/syslog': /Users/vs/temp # 目录下载到目录，默认压缩
+  '/var/log/user.log': '/Users/vs/temp' # 文件下载到目录，将保持原文件名，可指定是否压缩
+  '/var/log/user.log': '/Users/vs/temp/user_##%Y%m%d%H%M%S##.log' # 文件下载到文件，可指定是否压缩，文件名中可使用变量
 ```
 
 #### YAML配置文件中的变量
 
 变量分为两种，第一种是环境变量，或需要用户输入而提供的变量
 
-- 使用 Jinja2 变量语法，即 {{variant_name}} ，注意书写时，如果变量位于内容开头，需要用单引号或双引号括起来，否则解析 yaml 时会遇到错误
+- 使用 Jinja2 变量语法，即 {{variant_name}} ，注意书写时需要用单引号或双引号将整个字符串括起来，否则解析 yaml 时会遇到错误
 - 全大写变量为全局公用变量
     - CLIPBOARD，系统剪切板内容
     - 其它，首先从系统环境变量中取同名变量，若无值，要求用户输入，且在整个 flashops 运行期间只输入一次
