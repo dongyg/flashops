@@ -111,7 +111,7 @@ files: a map of [remote file or directory - a local file or directory]. For exam
 
 Environmental variables
 
-- Use Jinja2 syntax {{variant_name}}. Notice if the variable is at the beginning of the content, you need to use single or double quotes, otherwise you will encounter errors when parsing yaml
+- Use Jinja2 syntax {{variant_name}}. Notice you need to enclose the entire string containing the variable in quotes, otherwise you will encounter errors when parsing yaml
 - Variables with all uppercase letters are global public variables
     - CLIPBOARD, System clipboard content
     - Others, First, find the same name variable from the system environment variable. If there is no value, a input is required, and only once during the entire flashops session.
