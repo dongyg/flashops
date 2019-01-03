@@ -167,7 +167,7 @@ files: 可设置多个，服务器端目录或文件:复制到本地的目标目
 
 提示：别忘了先领红包再付款哦~
 
-![](alipay_hb.png)&nbsp;　　　　&nbsp;![](alipay_qr.png)
+![](images/alipay_hb.png)&nbsp;　　　　&nbsp;![](images/alipay_qr.png)
 
 ### Paypal
 

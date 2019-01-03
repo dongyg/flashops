@@ -1,0 +1,97 @@
+projects:
+  - title: A Web Project
+    operations:
+      - title: Push source code
+        type: gitpush
+        folder: '{{WORK_PATH}}/www'
+      - title: Upload Production Config
+        type: uploadfiles
+        issudo: True
+        sources:
+          '{{WORK_PATH}}/www/cfg/':
+            server01: '{{SERVER_ROOT}}/docker/www/cfg/'
+      - title: Download log
+        commands: [ 'scp mike@server01:/flashops/logs/nginx_access_20190101.log /Users/mike/temp/' ]
+  - title: A java Project
+    operations:
+      - title: Build
+        commands: [ 'cd {{WORK_PATH}}/myadmin && ant' ]
+      - title: Deploy
+        type: uploadfiles
+        issudo: True
+        sources:
+          '{{WORK_PATH}}/myadmin/dist/myadmin.war':
+            server02: '{{SERVER_ROOT}}/docker/myadmin/webapps/'
+      - title: Build and Deploy
+        includes: [ 'Build', 'Deploy' ]
+servers:
+  - title: server01
+    ssh:
+      host: 192.168.99.100
+      user: mike
+    operations:
+      - title: Pull source code
+        issudo: True
+        commands: [ 'git -C {{SERVER_ROOT}}/src pull' ]
+      - title: Restart www
+        commands: [ 'sudo docker-compose -f {{SERVER_ROOT}}/docker/www/docker-compose.yml restart' ]
+  - title: server02
+    ssh:
+      host: 192.168.99.101
+      user: mike
+    operations:
+      - title: Restart myadmin
+        commands: [ 'sudo docker-compose -f {{SERVER_ROOT}}/docker/myadmin/docker-compose.yml restart' ]
+      - title: Download nginx log
+        shortcut: lf
+        type: downfiles
+        compress: True
+        files:
+          '/var/log/nginx/error.log': '/Users/mike/nginx_error_##%Y%m%d%H%M%S##.log'
+  - title: server03
+    ssh:
+      host: 192.168.99.102
+      user: mike
+    operations:
+      - title: Export Table
+        commands: ['mysqldump -h 127.0.0.1 -P 3306 -u root --password={{MYSQL_PASS}} -p demodb {{table_name}} > /flashops/tmp/export_{{table_name}}_##%Y%m%d##.sql']
+tasks:
+  - title: Deploy www in one step
+    operations:
+      - title: step1
+        includes:
+          - 'projects.A Web Project.Push source code'
+          - 'servers.server01.Pull source code'
+          - 'servers.server01.Restart www'
+  - title: Deploy myadmin in one step
+    operations:
+      - title: step1
+        includes:
+          - 'projects.A java Project.Build and Deploy'
+          - 'servers.server02.Restart myadmin'
+  - title: Copy Table from server03
+    operations:
+      - title: Export
+        includes: ['servers.server03.Export Table']
+      - title: Download
+        target: servers.server03
+        type: downfiles
+        compress: False
+        files:
+          '/flashops/tmp/export_{{table_name}}_##%Y%m%d##.sql': /Users/mike/temp
+      - title: Import
+        target: 'projects.A Web Project'
+        commands: ['mysql -h 192.168.99.100 -P 3306 -u root -p demodb --password=123456 < /Users/mike/temp/export_{{table_name}}_##%Y%m%d##.sql']
+  - title: Copy Table to server03
+    operations:
+      - title: Export
+        target: 'projects.A Web Project'
+        commands: ['/usr/local/mysql/bin/mysqldump -h 192.168.99.100 -P 3306 -u root -p demodb --password=123456 {{table_name}} > /Users/mike/temp/export_{{table_name}}_##%Y%m%d##.sql']
+      - title: Upload
+        type: uploadfiles
+        sources:
+          '/Users/mike/temp/export_{{table_name}}_##%Y%m%d##.sql':
+            server03: /flashops/tmp/
+      - title: Import
+        target: servers.server03
+        commands: ['mysql -h 192.168.194.76 -P 3306 -u root -p demodb --password={{MYSQL_PASS}} < /flashops/tmp/export_{{table_name}}_##%Y%m%d##.sql']

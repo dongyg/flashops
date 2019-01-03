@@ -166,7 +166,7 @@ There are some useful commands in
 
 提示：别忘了先领红包再付款哦~
 
-![](alipay_hb.png)&nbsp;　　　　&nbsp;![](alipay_qr.png)
+![](images/alipay_hb.png)&nbsp;　　　　&nbsp;![](images/alipay_qr.png)
 
 ### Paypal
 
