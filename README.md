@@ -148,8 +148,23 @@ Must be a python script. FlashOps executes the script with `exec`, providing arg
 }
 ```
 
+### Run FlashOps
 
-### Others
+    $ flashops
+    Hi, flashops
+    No config file provided, using FLASHOPS_FILE. -h to see the help.
+    File: /Users/mike/demo.yaml
+    [f] Files
+    [r] Projects
+    [s] Servers
+    [t] Tasks
+    [c] Statements
+    [D] Donation
+    Please input your choice ("exit" for quit):
+
+> Without any parameters, the configuration file specified by the system environment variable `FLASHOPS_FILE` is used by default. Or you can use the `f` to specify the configuration file name. More options are available on help.
+
+### Some useful commands
 
 There are some useful commands in
 
@@ -164,7 +179,7 @@ There are some useful commands in
 
 ### Alipay
 
-提示：别忘了先领红包再付款哦~
+提示：别忘了先领红包哦~
 
 ![](images/alipay_hb.png)&nbsp;　　　　&nbsp;![](images/alipay_qr.png)
 

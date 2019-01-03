@@ -151,8 +151,23 @@ files: 可设置多个，服务器端目录或文件:复制到本地的目标目
 }
 ```
 
+### 运行
 
-### 其它命令
+    $ flashops
+    Hi, flashops
+    No config file provided, using FLASHOPS_FILE. -h to see the help.
+    File: /Users/mike/demo.yaml
+    [f] Files
+    [r] Projects
+    [s] Servers
+    [t] Tasks
+    [c] Statements
+    [D] Donation
+    Please input your choice ("exit" for quit):
+
+> 不带任何参数运行时，默认使用系统环境变量`FLASHOPS_FILE`指定的配置文件。或可使用`-f`参数指定配置文件名，更多选项可查看帮助。
+
+### 交互下的一些有用命令
 
 - `/`，回到根
 - `.`，回到上一级
@@ -165,7 +180,7 @@ files: 可设置多个，服务器端目录或文件:复制到本地的目标目
 
 ### 支付宝
 
-提示：别忘了先领红包再付款哦~
+提示：别忘了先领红包哦~
 
 ![](images/alipay_hb.png)&nbsp;　　　　&nbsp;![](images/alipay_qr.png)
 
