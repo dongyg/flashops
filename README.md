@@ -164,6 +164,10 @@ Must be a python script. FlashOps executes the script with `exec`, providing arg
 
 > Without any parameters, the configuration file specified by the system environment variable `FLASHOPS_FILE` is used by default. Or you can use the `f` to specify the configuration file name. More options are available on help.
 
+Or:
+
+  $ python -m flashops
+
 ### Some useful commands
 
 There are some useful commands in
