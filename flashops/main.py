@@ -11,9 +11,8 @@ import yaml
 
 import six
 from six.moves import input
-from six import _print
 
-from syncutils import *
+from .syncutils import *
 
 GV_FILENAME = ''
 GV_CONFIG  = {}
@@ -45,20 +44,20 @@ def flashops():
     args = parser.parse_args()
 
     if args.version:
-        _print('FlashOps Version: 19.01.01')
+        six.print_('FlashOps Version: 19.01.02')
         return
     if args.file:
         GV_FILENAME = args.file
     else:
-        _print('No config file provided, using FLASHOPS_FILE. -h to see the help.')
-        if os.environ.has_key('FLASHOPS_FILE'):
-            GV_FILENAME = os.environ['FLASHOPS_FILE']
+        six.print_('No config file provided, using FLASHOPS_FILE. -h to see the help.')
+        if os.getenv('FLASHOPS_FILE'):
+            GV_FILENAME = os.getenv('FLASHOPS_FILE')
         else:
-            GV_FILENAME = os.path.join(os.environ['HOME'], 'flashops.yml')
+            GV_FILENAME = os.path.join(os.getenv('HOME'), 'flashops.yml')
             if not os.path.isfile(GV_FILENAME):
-                GV_FILENAME = os.path.join(os.environ['HOME'], 'flashops.yaml')
+                GV_FILENAME = os.path.join(os.getenv('HOME'), 'flashops.yaml')
     if not os.path.isfile(GV_FILENAME):
-        _print('{} not exists!'.format(GV_FILENAME))
+        six.print_('{} not exists!'.format(GV_FILENAME))
         return
     if args.env:
         for item in args.env.split(';'):
@@ -70,18 +69,18 @@ def flashops():
 
 def load_config():
     global GV_CONFIG, GV_FILENAME
-    GV_CONFIG = yaml.load(file(GV_FILENAME, 'r'))
+    GV_CONFIG = yaml.load(open(GV_FILENAME).read())
     for objtype in K_OBJ_TYPES:
         for x in GV_CONFIG.get(objtype, []):
             x['objtype'] = objtype
             if objtype in K_OBJ_TYPES[:2]:
                 for y in x.get('operations', []):
-                    if not y.has_key('title'):
+                    if 'title' not in y:
                         y['title'] = 'Unknown'
             else:
-                if not x.has_key('title'):
+                if 'title' not in x:
                     x['title'] = 'Unknown'
-    # _print(json.dumps(GV_CONFIG, indent=4))
+    # six.print_(json.dumps(GV_CONFIG, indent=4))
 
 def parse_command(command):
     # 返回输入命令针对的对象类型 servers/projects/tasks，以及去掉命令后的子命令
@@ -105,7 +104,7 @@ def main():
             filterkey = filterkey[-1].upper() if len(filterkey)>1 else None
             for k, v in os.environ.items():
                 if not filterkey or (filterkey and (k.upper().find(filterkey)>=0 or v.upper().find(filterkey)>=0)):
-                    _print('{}={}'.format(k, v))
+                    six.print_('{}={}'.format(k, v))
             command = input(ltips)
         elif command.startswith( ('/f', '/F', 'f', 'F', ) ):
             select_file()
@@ -116,21 +115,22 @@ def main():
             filterkey = filterkey[-1].upper() if len(filterkey)>1 else None
             for row in GV_CONFIG.get('statements', []):
                 if not filterkey or (filterkey and row.upper().find(filterkey)>=0):
-                    _print(row)
-            _print('')
+                    six.print_(row)
+            six.print_('')
             command = input(ltips)
         elif command.startswith( ('/d', '/D', 'd', 'D', ) ):
             webbrowser.open('https://github.com/dongyg/flashops#donation', new=2)
+            six.print_('Please goto the web page just opened. Or access https://github.com/dongyg/flashops#donation by yourself.')
             command = input(ltips)
         elif command=='???': #测试用
-            _print(GV_TEST)
+            six.print_(GV_TEST)
             command = input(ltips)
         else:
             objtype, subcmd = parse_command(command)
             retval = select_item(objtype, initfunc=create_conn, subcmd=subcmd)
             command = retval if retval and retval.startswith(K_ALL_COMMAND) else input(ltips).strip()
     close_all_server()
-    _print('See you')
+    six.print_('See you')
 
 
 ################################################################################
@@ -206,8 +206,8 @@ def fill_vars(content):
     for var in parse_vars1(content):
         if var=='CLIPBOARD':
             val = pyperclip.paste()
-        elif os.environ.has_key(var):
-            val = os.environ[var]
+        elif os.getenv(var):
+            val = os.getenv(var)
         else:
             if var.lower().find('pass')>=0:
                 import getpass
@@ -224,26 +224,26 @@ def fill_vars(content):
 def create_conn(obj):
     # 输入server/project，创建服务器连接，project直接使用invoke来执行本地shell命令
     if obj['objtype']==K_OBJ_TYPES[0]:
-        if not obj.has_key('_conn_'):
-            if not obj.has_key('ssh'):
-                _print('Server {} has no [ssh] config!'.format(obj['title']))
+        if '_conn_' not in obj:
+            if 'ssh' not in obj:
+                six.print_('Server {} has no [ssh] config!'.format(obj['title']))
                 return
             ssh_arg = {}
-            if obj['ssh'].has_key('keyfile'):
+            if 'keyfile' in obj['ssh']:
                 ssh_arg['key_filename'] = fill_vars(obj['ssh']['keyfile'])
-            if obj['ssh'].has_key('keypass'):
+            if 'keypass' in obj['ssh']:
                 ssh_arg['password'] = fill_vars(obj['ssh']['keypass'])
-            _print('Connecting to {} ...... '.format(obj['title']), end='')
             from fabric import Connection, Config
-            if obj['ssh'].has_key('sudopass'):
+            if 'sudopass' in obj['ssh']:
                 obj['_conn_'] = Connection(obj['ssh']['host'], user=obj['ssh']['user'], config=Config(overrides={'sudo': {'password': fill_vars(obj['ssh']['sudopass'])}}), connect_kwargs=ssh_arg)
             else:
                 obj['_conn_'] = Connection(obj['ssh']['host'], user=obj['ssh']['user'], connect_kwargs=ssh_arg)
+            six.print_('Connecting to {} ...... '.format(obj['title']), end='')
             sys.stdout.flush()
-            _print('Work path: ', end='')
+            six.print_('Work path: ', end='')
             obj['_conn_'].run('pwd')
     elif obj['objtype']==K_OBJ_TYPES[1]:
-        if not obj.has_key('_conn_'):
+        if '_conn_' not in obj:
             import invoke
             obj['_conn_'] = invoke
 
@@ -251,9 +251,9 @@ def close_all_server():
     # 关闭所有server的连接
     global GV_CONFIG
     for i, server in enumerate(GV_CONFIG.get('servers', []), 1):
-        if server.has_key('_conn_') and hasattr(server['_conn_'], 'close'):
+        if '_conn_' in server and hasattr(server['_conn_'], 'close'):
             server['_conn_'].close()
-            _print('{} closed.'.format(server['title']))
+            six.print_('{} closed.'.format(server['title']))
 
 def init_server_folder(conn):
     # 初始化远程机器上的flashops目录
@@ -278,11 +278,14 @@ def select_file():
             GV_FILENAME = fnames[idx]
             load_config()
     else:
-        _print('No yaml files in current folder: {}.{}'.format(os.getcwd(), os.linesep))
+        six.print_('No yaml files in current folder: {}.{}'.format(os.getcwd(), os.linesep))
 
 def select_item(objtype, initfunc=None, subcmd=''):
     # 选择server/project/task
     if objtype not in ('servers', 'projects', 'tasks'): return
+    if objtype not in GV_CONFIG:
+        six.print_('No {} defined.'.format(objtype))
+        return
     tips = ['[{}] {}'.format(ten_to_trsix(i), item['title']) for i, item in enumerate(GV_CONFIG.get(objtype, []), 1)]
     tips.append('{}Choose one of the {}: '.format(('TEST:' if GV_TEST else ''), objtype))
     command = subcmd or input(os.linesep.join(tips)).strip()
@@ -295,7 +298,7 @@ def select_item(objtype, initfunc=None, subcmd=''):
             idx = trsix_to_ten(command[1:])-1
             if idx>=0 and idx<len(GV_CONFIG[objtype]):
                 obj = GV_CONFIG[objtype][idx]
-                _print(json.dumps(obj, cls=FlashJSONEncoder, indent=4))
+                six.print_(json.dumps(obj, cls=FlashJSONEncoder, indent=4))
             command = input(tips[-1]).strip()
         elif command!='':
             istest = command.startswith(('test:', 'TEST:')) #选择server/project/task时test:指令只对task有作用，传递给exec_task
@@ -308,7 +311,7 @@ def select_item(objtype, initfunc=None, subcmd=''):
                 if retval and retval.startswith('/'):
                     return retval
                 elif retval=='.':
-                    _print(os.linesep.join(tips[:-1]).strip())
+                    six.print_(os.linesep.join(tips[:-1]).strip())
             command = input(tips[-1]).strip()
         else:
             command = input(tips[-1]).strip()
@@ -342,7 +345,7 @@ def select_operation(obj):
             command = input(os.linesep.join(tips)).strip()
         elif command.startswith('?'):
             operation = get_operation(obj, command[1:].strip())
-            _print(json.dumps(operation, indent=4))
+            six.print_(json.dumps(operation, indent=4))
             command = input(tips[-1]).strip()
         elif command!='':
             istest = command.startswith(('test:', 'TEST:'))
@@ -359,7 +362,7 @@ def exec_operation(objhost, operation, isbatch=False, _test_=None):
     global GV_batchvars
     if not operation: return
     objtarget = get_obj_by_title(operation.get('target'), objhost)
-    if not objtarget.has_key('_conn_'):
+    if '_conn_' not in objtarget:
         create_conn(objtarget)
     if operation.get('executor') and os.path.isfile(operation['executor']):
         scripts = open(operation['executor']).read()
@@ -372,31 +375,31 @@ def exec_operation(objhost, operation, isbatch=False, _test_=None):
                 traceback.print_exc()
     elif operation.get('type')=='_checkconnection_':
         exec_checkconnection(objtarget)
-    elif operation.get('type')=='gitpush' and operation.has_key('folder'):
+    elif operation.get('type')=='gitpush' and 'folder' in operation:
         git_add_commit_push(objtarget, fill_vars(operation['folder']), _test_)
     elif operation.get('type')=='uploadfiles':
         exec_uploadfiles(operation, isbatch)
     elif operation.get('type')=='downfiles':
         exec_downloadfiles(objtarget, operation, isbatch)
-    elif operation.has_key('commands'):
+    elif 'commands' in operation:
         if operation.get('yesorno'):
             yesorno = input('Run {}{}{}{}Continue?(y/n): '.format(operation['title'], os.linesep, os.linesep.join(operation['commands']), os.linesep, os.linesep)).strip()
             if yesorno in ('Y', 'y'):
                 exec_commands(objtarget, operation['commands'], operation.get('issudo'), _test_)
         else:
             exec_commands(objtarget, operation['commands'], operation.get('issudo'), _test_)
-    elif operation.has_key('includes'):
+    elif 'includes' in operation:
         exec_includes(objtarget, operation['includes'], isbatch, _test_)
     if not isbatch: GV_batchvars = {}
 
 def exec_task(obj, _test_=None):
     # 执行task
     global GV_batchvars
-    if not obj.has_key('operations'):
-        _print('No operations!')
+    if 'operations' not in obj:
+        six.print_('No operations!')
     else:
         for i, op in enumerate(obj['operations'],1):
-            _print('Step{} - {}'.format(i, op['title']))
+            six.print_('Step{} - {}'.format(i, op['title']))
             exec_operation(obj, op, True, _test_)
         GV_batchvars = {}
 
@@ -406,7 +409,7 @@ def exec_commands(obj, commands, issudo=False, _test_=None):
     for command in commands:
         command = fill_vars(command).strip()
         if command:
-            _print(command)
+            six.print_(command)
             if not _test_:
                 try:
                     if obj['_conn_']:
@@ -418,7 +421,7 @@ def exec_commands(obj, commands, issudo=False, _test_=None):
                             obj['_conn_'].run(command, pty=True)
                 except Exception as e:
                     traceback.print_exc()
-                _print('')
+                six.print_('')
 
 def get_obj_by_title(typeandtitle, defaultobj=None):
     # 输入 servers.title 或 projects.title 得到 server/porject 对象。如果 title 能唯一确定对象，可以省略前面的 servers/projects
@@ -502,21 +505,21 @@ def exec_checkconnection(obj):
                 resp = ret.stdout.strip()
             except Exception as e:
                 resp = 'Unknown' # 若两次都失败，连接就是断开的，打印工作目录 Unknown
-        _print('Checking {}: {}. Work dir: {}'.format(obj['title'], getattr(obj['_conn_'], 'is_connected'), resp))
+        six.print_('Checking {}: {}. Work dir: {}'.format(obj['title'], getattr(obj['_conn_'], 'is_connected'), resp))
     else:
         ret = obj['_conn_'].run('pwd', pty=False, hide=True)
         resp = ret.stdout.strip()
-        _print('Checking {}: Local. Work dir: {}'.format(obj['title'], resp))
+        six.print_('Checking {}: Local. Work dir: {}'.format(obj['title'], resp))
 
 def exec_uploadfiles(operation, isbatch=False):
     # 复制文件至远端。
     # 源是目录时，末尾是斜杠只压缩目录里面内容，末尾非斜杠压缩目录本身，目地必须是目录（若不存在则创建一个目录），非全量时根据目地目录中已经存在的文件修改时间和大小壮士判断需要同步的源文件
     # 源是文件时，比较简单，复制即可
-    _print('Preparing ({}) ...'.format('total syncs' if operation.get('fullordiff', 'diff')=='full' else 'delta syncs'))
+    six.print_('Preparing ({}) ...'.format('total syncs' if operation.get('fullordiff', 'diff')=='full' else 'delta syncs'))
     for source, target in operation.get('sources',{}).items():
         srcname = fill_vars(source)
         if not os.path.isdir(srcname) and not os.path.isfile(srcname):
-            _print('[{}] not exists!'.format(srcname))
+            six.print_('[{}] not exists!'.format(srcname))
             continue
         isdir, basename, transsrc, transdst = getnames(srcname)
         if not isdir: # 打包文件
@@ -530,7 +533,7 @@ def exec_uploadfiles(operation, isbatch=False):
             server = get_obj_by_title(srvname)
             dstname = fill_vars(dstname)
             create_conn(server)
-            if not server.has_key('_conn_'): continue
+            if '_conn_' not in server: continue
             if not init_server_folder(server['_conn_']): continue
             # 如果同步源是目录并且差异同步，需要从服务器上的目录获取文件信息，与源进行比较，得到有差异的文件，只打包这些文件，源中转文件名、目的中转文件名要有所不同，包含目标服务器名
             if isdir and operation.get('fullordiff', 'diff')=='diff':
@@ -540,10 +543,10 @@ def exec_uploadfiles(operation, isbatch=False):
             # 复制到中转目录
             if not os.path.isfile(transsrc): # 如果中转文件不存在就跳过
                 continue
-            _print('Uploading... {} > {}'.format(transsrc, transdst))
+            six.print_('Uploading... {} > {}'.format(transsrc, transdst))
             server['_conn_'].put(transsrc, transdst)
             # 在服务器上解压文件
-            _print('Extracting... {} > {}'.format(transdst, dstname))
+            six.print_('Extracting... {} > {}'.format(transdst, dstname))
             cmdprefix = 'sudo ' if operation.get('issudo', False) else ''
             if server['_conn_'].run('test -e {}'.format(dstname), warn=True).failed:
                 server['_conn_'].run('mkdir {}'.format(dstname))
@@ -551,42 +554,42 @@ def exec_uploadfiles(operation, isbatch=False):
             # 源中转文件是针对服务器的时候，循环内删除
             if isdir and operation.get('fullordiff', 'diff')=='diff':
                 if os.path.isfile(transsrc):
-                    _print('Removing... {}'.format(transsrc))
+                    six.print_('Removing... {}'.format(transsrc))
                     os.remove(transsrc)
         if os.path.isfile(transsrc):
-            _print('Removing... {}'.format(transsrc))
+            six.print_('Removing... {}'.format(transsrc))
             os.remove(transsrc)
-    _print('Done.')
+    six.print_('Done.')
 
 def exec_downloadfiles(obj, operation, isbatch=False):
     # 下载文件
     global GV_batchvars
     yyyymmddhhnnss = "%Y%m%d%H%M%S"
     if operation.get('files',{}).keys():
-        _print('Downloading...')
+        six.print_('Downloading...')
     for source, target in operation.get('files',{}).items():
         source = fill_vars(source)
         if source[-1]=='/': source = source[:-1] #源如果是/结尾去掉它
         target = fill_vars(target)
         # 如果源目录或文件不存在，跳过
         if obj['_conn_'].run('test -e {}'.format(source), warn=True).failed:
-            _print('Source file or folder not exists: {}'.format(source))
+            six.print_('Source file or folder not exists: {}'.format(source))
             continue
         # 如果目标不存在且目标的父目录不存在，跳过
         if not os.path.exists(target) and not os.path.exists(os.path.split(target)[0]):
-            _print('Destination or parent folder not exists: {}'.format(target))
+            six.print_('Destination or parent folder not exists: {}'.format(target))
             continue
         # 如果源是目录，目标不能是文件
         isfolder = obj['_conn_'].run('test -d {}'.format(source), warn=True).ok
         isfile = obj['_conn_'].run('test -f {}'.format(source), warn=True).ok
         if isfolder and os.path.isfile(target):
-            _print('Source is a folder, can not download to a file: {}'.format(target))
+            six.print_('Source is a folder, can not download to a file: {}'.format(target))
             continue
         tarfilename = '{}_{}.tar.gz'.format(os.path.basename(source), datetime.strftime(datetime.now(), yyyymmddhhnnss))
         # 如果目标是目录，使目标文件名与源文件名相同
         target = os.path.join(target, os.path.basename(source)) if os.path.isdir(target) else target
         # 开始下载
-        _print('{} > {}'.format(source, target))
+        six.print_('{} > {}'.format(source, target))
         try:
             if isfolder or operation.get('compress', False): #下载前压缩
                 # 用 tar 命令压缩像日志文件这种动态在变化的文件时，检查到文件会压缩失败，如果不捕获异常的话，异常会跳出 flashops
@@ -615,7 +618,7 @@ def git_add_commit_push(obj, gitpath, _test_=None):
     # gitpath = '/Users/vs/Projects/vansky'
     if _test_==None: _test_ = GV_TEST
     command = 'git -C {} status -s'.format(gitpath)
-    _print(command)
+    six.print_(command)
     if _test_: return
     ret = obj['_conn_'].run(command, pty=True, hide=True)
     from cStringIO import StringIO
@@ -626,16 +629,16 @@ def git_add_commit_push(obj, gitpath, _test_=None):
     row = fakefile.readline()
     while row:
         filenames.append(row.split(' ')[-1])
-        _print('[{}] {}'.format(len(filenames), row.strip()))
+        six.print_('[{}] {}'.format(len(filenames), row.strip()))
         row = fakefile.readline()
     fakefile.close()
     if not filenames:
-        _print('Nothing to commit, working directory clean')
+        six.print_('Nothing to commit, working directory clean')
         return
     commits = []
     nos = input("Enter the numbers you want to submit(A for All): ").strip()
     if not nos:
-        _print("You didn't select any files.")
+        six.print_("You didn't select any files.")
         return
     if nos in ('A'):
         commits = filenames
@@ -645,20 +648,20 @@ def git_add_commit_push(obj, gitpath, _test_=None):
                 commits.append(filenames[int(no)-1])
     if commits:
         command = 'git -C {} add {}'.format(gitpath, ' '.join([os.path.join(gitpath, x.strip()) for x in commits]))
-        _print(command)
+        six.print_(command)
         obj['_conn_'].run(command, pty=True)
         summary = input("Enter summit message: ").strip()
         if summary:
             command = 'git -C {} commit -m "{}"'.format(gitpath, summary)
-            _print(command)
+            six.print_(command)
             obj['_conn_'].run(command, pty=True)
             command = 'git -C {} push'.format(gitpath)
-            _print(command)
+            six.print_(command)
             obj['_conn_'].run(command, pty=True)
         else:
-            _print("You didn't give commit message.")
+            six.print_("You didn't give commit message.")
     else:
-        _print("You didn't select any files.")
+        six.print_("You didn't select any files.")
 
 if __name__ == '__main__':
     flashops()

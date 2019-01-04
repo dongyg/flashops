@@ -7,8 +7,8 @@ __all__ = [
 
 import os, fnmatch, json, traceback
 from datetime import datetime
+import six
 from six.moves import input
-from six import _print
 
 K_DIR_HOME = '/flashops'
 
@@ -130,15 +130,15 @@ def pack_folder(srcname, pkgfile, fullordiff, conn, dstname, issudo=False, verbo
                 if n and (os.path.isfile(n) or os.path.isdir(n)):
                     packfiles.append(n)
         if packfiles:
-            _print('Packing... {} > {}'.format(srcname, pkgfile))
-            _print('Count: {}'.format(len(packfiles)))
+            six.print_('Packing... {} > {}'.format(srcname, pkgfile))
+            six.print_('Count: {}'.format(len(packfiles)))
             tar = tarfile.open(pkgfile, 'w:gz')
             for n in packfiles:
-                if verbose: _print(n)
+                if verbose: six.print_(n)
                 tar.add(n)
             tar.close()
         else:
-            _print('No files need to sync.')
+            six.print_('No files need to sync.')
     except Exception as e:
         traceback.print_exc()
     finally:
@@ -151,7 +151,7 @@ def pack_file(srcname, pkgfile):
     curdir = os.getcwd()
     os.chdir(os.path.split(srcname)[0])
     try:
-        _print('Packing... {} > {}'.format(srcname, pkgfile))
+        six.print_('Packing... {} > {}'.format(srcname, pkgfile))
         tar = tarfile.open(pkgfile, 'w:gz')
         tar.add(os.path.basename(srcname))
         tar.close()
