@@ -53,9 +53,10 @@ def flashops():
         if os.getenv('FLASHOPS_FILE'):
             GV_FILENAME = os.getenv('FLASHOPS_FILE')
         else:
-            GV_FILENAME = os.path.join(os.getenv('HOME'), 'flashops.yml')
+            homepath = os.getenv('HOME') or os.getenv('HOMEPATH') or ''
+            GV_FILENAME = os.path.join(homepath, 'flashops.yml')
             if not os.path.isfile(GV_FILENAME):
-                GV_FILENAME = os.path.join(os.getenv('HOME'), 'flashops.yaml')
+                GV_FILENAME = os.path.join(homepath, 'flashops.yaml')
     if not os.path.isfile(GV_FILENAME):
         six.print_('{} not exists!'.format(GV_FILENAME))
         return
