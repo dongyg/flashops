@@ -177,6 +177,7 @@ There are some useful commands in
 - `?`, list the currently executable actions
 - `?`+`no.`or`shortcut`, show the defination of current item
 - `test:`+`no.`or`shortcut`, show the shell commands to be executed
+- `/reload`, reload current config file
 
 
 ## Donation
