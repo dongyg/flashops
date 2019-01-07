@@ -44,7 +44,7 @@ def flashops():
     args = parser.parse_args()
 
     if args.version:
-        six.print_('FlashOps Version: 19.01.02')
+        six.print_('FlashOps Version: 19.01.05')
         return
     if args.file:
         GV_FILENAME = args.file
@@ -70,6 +70,7 @@ def flashops():
 
 def load_config():
     global GV_CONFIG, GV_FILENAME
+    close_all_server()
     GV_CONFIG = yaml.load(open(GV_FILENAME).read())
     for objtype in K_OBJ_TYPES:
         for x in GV_CONFIG.get(objtype, []):
