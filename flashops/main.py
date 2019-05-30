@@ -49,7 +49,7 @@ def flashops():
     if args.file:
         GV_FILENAME = args.file
     else:
-        six.print_('No config file provided, using FLASHOPS_FILE. -h to see the help.')
+        six.print_('No config file provided, using FLASHOPS_FILE, -h to see the help.')
         if os.getenv('FLASHOPS_FILE'):
             GV_FILENAME = os.getenv('FLASHOPS_FILE')
         else:
@@ -71,7 +71,7 @@ def flashops():
 def load_config():
     global GV_CONFIG, GV_FILENAME
     close_all_server()
-    GV_CONFIG = yaml.load(open(GV_FILENAME).read())
+    GV_CONFIG = yaml.load(open(GV_FILENAME).read(), Loader=yaml.FullLoader)
     for objtype in K_OBJ_TYPES:
         for x in GV_CONFIG.get(objtype, []):
             x['objtype'] = objtype
@@ -255,7 +255,7 @@ def close_all_server():
     for i, server in enumerate(GV_CONFIG.get('servers', []), 1):
         if '_conn_' in server and hasattr(server['_conn_'], 'close'):
             server['_conn_'].close()
-            six.print_('{} closed.'.format(server['title']))
+            six.print_('Connection to {} closed.'.format(server['title']))
 
 def init_server_folder(conn):
     # 初始化远程机器上的flashops目录
