@@ -364,8 +364,7 @@ def exec_operation(objhost, operation, isbatch=False, _test_=None):
     global GV_batchvars
     if not operation: return
     objtarget = get_obj_by_title(operation.get('target'), objhost)
-    if '_conn_' not in objtarget:
-        create_conn(objtarget)
+    exec_checkconnection(objtarget, False)
     if operation.get('executor') and os.path.isfile(operation['executor']):
         scripts = open(operation['executor']).read()
         if scripts:
@@ -376,7 +375,7 @@ def exec_operation(objhost, operation, isbatch=False, _test_=None):
             except Exception as e:
                 traceback.print_exc()
     elif operation.get('type')=='_checkconnection_':
-        exec_checkconnection(objtarget)
+        exec_checkconnection(objtarget, True)
     elif operation.get('type')=='gitpush' and 'folder' in operation:
         git_add_commit_push(objtarget, fill_vars(operation['folder']), _test_)
     elif operation.get('type')=='uploadfiles':
@@ -495,9 +494,11 @@ def exec_includes(obj, includes, isbatch=False, _test_=None):
 
 ################################################################################
 
-def exec_checkconnection(obj):
+def exec_checkconnection(obj, showResponse=False):
     # 检查测试连接
-    if hasattr(obj['_conn_'], 'is_connected'):
+    if '_conn_' not in obj:
+        create_conn(obj)
+    if hasattr(obj['_conn_'], 'is_connected'): #以此来区分是远程连接还是本地连接，本地连接不会有is_connected属性
         try:
             ret = obj['_conn_'].run('pwd', pty=False, hide=True)
             resp = ret.stdout.strip()
@@ -507,11 +508,13 @@ def exec_checkconnection(obj):
                 resp = ret.stdout.strip()
             except Exception as e:
                 resp = 'Unknown' # 若两次都失败，连接就是断开的，打印工作目录 Unknown
-        six.print_('Checking {}: {}. Work dir: {}'.format(obj['title'], getattr(obj['_conn_'], 'is_connected'), resp))
+        if showResponse:
+            six.print_('{} connected? {}. Work dir: {}'.format(obj['title'], getattr(obj['_conn_'], 'is_connected'), resp))
     else:
         ret = obj['_conn_'].run('pwd', pty=False, hide=True)
         resp = ret.stdout.strip()
-        six.print_('Checking {}: Local. Work dir: {}'.format(obj['title'], resp))
+        if showResponse:
+            six.print_('{} connected?: Local. Work dir: {}'.format(obj['title'], resp))
 
 def exec_uploadfiles(operation, isbatch=False):
     # 复制文件至远端。
